@@ -14,6 +14,7 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
   const [name, setName] = useState("");
   const [symbol, setSymbol] = useState("");
   const [description, setDescription] = useState("");
+  const [submittedData, setSubmittedData] = useState<any>(null);
 
   const [showMore, setShowMore] = useState(false);
   const [telegram, setTelegram] = useState("");
@@ -38,7 +39,7 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
         address: ContractAddress, // Ensure this is correctly passed
         abi: abi,
         functionName: "createToken",
-        args: [title, symbol], // Add arguments if your function expects them
+        args: [name, symbol], // Add arguments if your function expects them
       });
       console.log("Token created successfully!");
     } catch (error) {
@@ -46,6 +47,14 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
     }
 
     console.log("Token created successfully!");
+
+    setSubmittedData({
+      name,
+      symbol,
+    });
+
+    setName("");
+    setSymbol("");
   };
 
   return (
@@ -57,9 +66,8 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50">
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-auto p-6 space-y-4">
-            {/* Header with X button */}
             <div className="flex items-center justify-between pb-3 border-b">
-              <h2 className="text-xl font-semibold">Create Token</h2>
+              <h2 className="text-xl text-black font-semibold">Create Token</h2>
               <button
                 onClick={() => setShowForm(false)}
                 className="text-gray-500 hover:bg-gray-200 rounded-full p-2"
@@ -147,6 +155,31 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
               </button>
             </form>
           </div>
+        </div>
+      )}
+
+      {submittedData && (
+        <div className="mt-6 p-4 bg-gray-100 rounded-lg">
+          <h3 className="text-lg font-semibold">Submitted Data:</h3>
+          <p>
+            <strong>Name:</strong> {submittedData.name}
+          </p>
+          <p>
+            <strong>Symbol:</strong> {submittedData.symbol}
+          </p>
+          <p>
+            <strong>Description:</strong> {submittedData.description}
+          </p>
+          {submittedData.telegram && (
+            <p>
+              <strong>Telegram:</strong> {submittedData.telegram}
+            </p>
+          )}
+          {submittedData.website && (
+            <p>
+              <strong>Website:</strong> {submittedData.website}
+            </p>
+          )}
         </div>
       )}
     </div>
