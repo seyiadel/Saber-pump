@@ -142,4 +142,5 @@ contract FactoryContract {
         uint256 cost = (step * (_sold / increment)) + floor;
         return cost;
     }
+    
 }

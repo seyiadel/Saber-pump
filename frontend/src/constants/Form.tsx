@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useWriteContract } from "wagmi";
 import { isAddress } from "viem";
 import { title } from "process";
+import ListingFee from "./ListingFee";
 
 type FormProps = {
   ContractAddress: `0x${string}`;
@@ -19,6 +20,8 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
   const [showMore, setShowMore] = useState(false);
   const [telegram, setTelegram] = useState("");
   const [website, setWebsite] = useState("");
+
+  
 
   const handleShowForm = () => {
     setShowForm(true);
@@ -57,6 +60,28 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
     setSymbol("");
   };
 
+  // const handleGetListing = async (e: React.FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+
+  //   if (isLoading === true) {
+  //     return <p>Loading...</p>;
+  //   }
+
+  //   try {
+  //     await listingFee({
+  //       address: ContractAddress,
+  //       abi: abi,
+  //       functionName: "listingFee",
+  //     });
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+
+  //   const listingFeeInEther = parseFloat(
+  //     (Number(listingFee) / 10 ** 18).toFixed(4)
+  //   );
+  // };
+
   return (
     <div className="text-center">
       <button className="text-[25px] font-semibold" onClick={handleShowForm}>
@@ -68,6 +93,7 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-auto p-6 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b">
               <h2 className="text-xl text-black font-semibold">Create Token</h2>
+              <ListingFee ContractAddress={ContractAddress} abi={abi} />
               <button
                 onClick={() => setShowForm(false)}
                 className="text-gray-500 hover:bg-gray-200 rounded-full p-2"
@@ -159,27 +185,29 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
       )}
 
       {submittedData && (
-        <div className="mt-6 p-4 bg-gray-100 rounded-lg">
-          <h3 className="text-lg font-semibold">Submitted Data:</h3>
-          <p>
-            <strong>Name:</strong> {submittedData.name}
-          </p>
-          <p>
-            <strong>Symbol:</strong> {submittedData.symbol}
-          </p>
-          <p>
-            <strong>Description:</strong> {submittedData.description}
-          </p>
-          {submittedData.telegram && (
+        <div className="mt-6 p-4  grid grid-cols-1 md:grid-cols-3 items-center place-items-center space-x-3 space-y-3 my-5 md:space-y-5 rounded-lg">
+          <div>
+            <h3 className="text-lg font-semibold">Submitted Data:</h3>
             <p>
-              <strong>Telegram:</strong> {submittedData.telegram}
+              <strong>Name:</strong> {submittedData.name}
             </p>
-          )}
-          {submittedData.website && (
             <p>
-              <strong>Website:</strong> {submittedData.website}
+              <strong>Symbol:</strong> {submittedData.symbol}
             </p>
-          )}
+            <p>
+              <strong>Description:</strong> {submittedData.description}
+            </p>
+            {submittedData.telegram && (
+              <p>
+                <strong>Telegram:</strong> {submittedData.telegram}
+              </p>
+            )}
+            {submittedData.website && (
+              <p>
+                <strong>Website:</strong> {submittedData.website}
+              </p>
+            )}
+          </div>
         </div>
       )}
     </div>
