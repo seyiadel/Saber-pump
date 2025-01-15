@@ -24,6 +24,7 @@ contract FactoryContract {
     struct TokenSale {
         address token;
         string name;
+        string desciption;
         address creator;
         uint256 sold;
         uint256 raised;
@@ -47,6 +48,7 @@ contract FactoryContract {
     function createToken(
         string memory _name,
         string memory _symbol
+        string memory _description
     ) public payable {
         if (msg.value <= 0) {
             revert ListingFeerequired();
@@ -62,6 +64,7 @@ contract FactoryContract {
         TokenSale memory sale = TokenSale(
             address(token),
             _name,
+            _description,
             msg.sender,
             0,
             0,

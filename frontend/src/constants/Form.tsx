@@ -137,14 +137,14 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
                     type="text"
                     value={telegram}
                     onChange={(e) => setTelegram(e.target.value)}
-                    placeholder="Telegram Link"
+                    placeholder="Telegram Link (optional)"
                     className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <input
                     type="url"
                     value={website}
                     onChange={(e) => setWebsite(e.target.value)}
-                    placeholder="Website"
+                    placeholder="Website (optional)"
                     className="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -180,12 +180,12 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
               </p>
               {token.telegram && (
                 <p>
-                  <strong>Telegram:</strong> {token.telegram}
+                  <strong>Telegram: </strong> {token.telegram}
                 </p>
               )}
               {token.website && (
                 <p>
-                  <strong>Website:</strong> {token.website}
+                  <strong>Website: </strong> {token.website}
                 </p>
               )}
             </div>
