@@ -24,6 +24,10 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
 
   const { writeContractAsync: createToken } = useWriteContract();
 
+  useEffect(() => {
+
+  }, [])
+
   const handleCreateToken = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -37,7 +41,7 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
         address: ContractAddress,
         abi: abi,
         functionName: "createToken",
-        args: [name, symbol], // Add arguments if your function expects them
+        args: [name, symbol], 
       });
       console.log("Token created successfully!");
     } catch (error) {
