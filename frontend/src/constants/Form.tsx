@@ -25,8 +25,11 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
   const { writeContractAsync: createToken } = useWriteContract();
 
   useEffect(() => {
-
-  }, [])
+    const storedData = sessionStorage.getItem("submittedData");
+    if (storedData) {
+      setSubmittedData(JSON.parse(storedData));
+    }
+  }, []);
 
   const handleCreateToken = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -41,7 +44,7 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
         address: ContractAddress,
         abi: abi,
         functionName: "createToken",
-        args: [name, symbol], 
+        args: [name, symbol],
       });
       console.log("Token created successfully!");
     } catch (error) {
@@ -55,7 +58,12 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
       telegram: telegram || null,
       website: website || null,
     };
-    setSubmittedData((prevData) => [...prevData, newToken]);
+
+    const updatedData = [...submittedData, newToken];
+    setSubmittedData(updatedData);
+
+    sessionStorage.setItem("submittedData", JSON.stringify(updatedData));
+    // setSubmittedData((prevData) => [...prevData, newToken]);
 
     setName("");
     setSymbol("");
