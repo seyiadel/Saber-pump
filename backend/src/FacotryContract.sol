@@ -47,7 +47,7 @@ contract FactoryContract {
 
     function createToken(
         string memory _name,
-        string memory _symbol
+        string memory _symbol,
         string memory _description
     ) public payable {
         if (msg.value <= 0) {
