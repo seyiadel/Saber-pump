@@ -16,6 +16,9 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
   const [symbol, setSymbol] = useState("");
   const [description, setDescription] = useState("");
 
+  const [file, setFile] = useState(null);
+  const [uploadURL, setUploadURL] = useState("");
+
   const [showMore, setShowMore] = useState(false);
   const [telegram, setTelegram] = useState("");
   const [website, setWebsite] = useState("");
@@ -23,6 +26,35 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
   const [submittedData, setSubmittedData] = useState<any[]>([]);
 
   const { writeContractAsync: createToken } = useWriteContract();
+
+  const handleFileChange = (event) => {
+    setFile(event.target.files[0]);
+  };
+
+  const handleUpload = async () => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch(
+        "https://api.pinata.cloud/pinning/pinFileToIPFS",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiJiNTg4ZWFhNi0yNTUxLTQ0MGUtYmVmMy0yMmU4YTQ3YjQ0OTUiLCJlbWFpbCI6ImF5b2Rlamlha2ludG9iaTFAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjcxZjRiYmIzZGJhNzNkYjlkYWJkIiwic2NvcGVkS2V5U2VjcmV0IjoiMmRjODJiOGZmOWMyYTc4OGUxYWY2MTQ3ZjI0MzdmZTNhNjBjNjQyN2MzYjk4MzA1MWQyNDhkM2ZmNjM1OGYzNyIsImV4cCI6MTc2OTM1NDMxNX0.DnbuLgOR7tT4YR1Hy-bPvAz5661y325tUANtTPwBmPU`,
+          },
+          body: formData,
+        }
+      );
+
+      const result = await response.json();
+      setUploadURL(`https://ipfs.io/ipfs/${result.IpfsHash}`);
+    } catch (error) {
+      console.error("Error uploading file:", error);
+    }
+  };
 
   useEffect(() => {
     const storedData = sessionStorage.getItem("submittedData");
@@ -135,6 +167,11 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
                 className="w-full px-3 py-2 border rounded-md"
               />
 
+              <div>
+                <input type="file" onChange={handleFileChange} />
+                <button onClick={handleUpload}>Upload</button>
+              </div>
+
               <button
                 type="button"
                 onClick={() => setShowMore(!showMore)}
@@ -202,6 +239,15 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
               )}
             </div>
           ))}
+          
+          {uploadURL && (
+            <p>
+              Uploaded to:{" "}
+              <a href={uploadURL} target="_blank" rel="noopener noreferrer">
+                {uploadURL}
+              </a>
+            </p>
+          )}
         </div>
       )}
     </div>
