@@ -239,15 +239,15 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
               )}
             </div>
           ))}
-          
-          {uploadURL && (
+
+          {/* {uploadURL && (
             <p>
               Uploaded to:{" "}
               <a href={uploadURL} target="_blank" rel="noopener noreferrer">
                 {uploadURL}
               </a>
             </p>
-          )}
+          )} */}
         </div>
       )}
     </div>
