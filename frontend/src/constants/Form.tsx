@@ -27,7 +27,7 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
 
   const { writeContractAsync: createToken } = useWriteContract();
 
-  const handleFileChange = (event) => {
+  const handleFileChange = (event: any) => {
     setFile(event.target.files[0]);
   };
 

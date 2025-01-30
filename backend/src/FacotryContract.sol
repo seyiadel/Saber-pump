@@ -2,6 +2,7 @@
 pragma solidity ^0.8.27;
 import {Token} from "./Token.sol";
 
+
 error ListingFeerequired();
 error InsufficientFunds();
 error SaleIsClosed();
@@ -50,7 +51,8 @@ contract FactoryContract {
         string memory _symbol,
         string memory _description
     ) public payable {
-        if (msg.value <= 0) {
+
+        if (msg.value >= 0) {
             revert ListingFeerequired();
         }
         //Allow creation of tokens through token instanciation
