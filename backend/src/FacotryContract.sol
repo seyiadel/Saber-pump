@@ -18,6 +18,7 @@ contract FactoryContract {
     uint256 public immutable listingFee;
     address public owner;
 
+    
     address[] public tokens; //array of created tokens
     uint256 public totalTokens;
     mapping(address => TokenSale) public tokenToSale;
