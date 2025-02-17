@@ -2,7 +2,6 @@
 pragma solidity ^0.8.27;
 import {Token} from "./Token.sol";
 
-
 error ListingFeerequired();
 error InsufficientFunds();
 error SaleIsClosed();
@@ -18,10 +17,11 @@ contract FactoryContract {
     uint256 public immutable listingFee;
     address public owner;
 
-    
-    address[] public tokens; //array of created tokens
+    address[] public tokens; // array of created tokens
     uint256 public totalTokens;
     mapping(address => TokenSale) public tokenToSale;
+    mapping(address => bool) public whitelisted; // whitelist for approved buyers
+    mapping(address => uint256) public referralEarnings; // stores referral rewards
 
     struct TokenSale {
         address token;
@@ -35,6 +35,10 @@ contract FactoryContract {
 
     event Created(address indexed token);
     event Buy(address indexed token, uint256 amount);
+    event Whitelisted(address indexed user);
+    event ReferralReward(address indexed referrer, uint256 amount);
+    event Withdrawn(address indexed creator, uint256 amount);
+    event SaleClosed(address indexed token);
 
     modifier onlyOwner() {
         if (msg.sender != owner) {
@@ -42,6 +46,7 @@ contract FactoryContract {
         }
         _;
     }
+
     constructor(uint256 _listingFee) {
         listingFee = _listingFee;
         owner = msg.sender;
@@ -52,18 +57,17 @@ contract FactoryContract {
         string memory _symbol,
         string memory _description
     ) public payable {
-
         if (msg.value >= 0) {
             revert ListingFeerequired();
         }
-        //Allow creation of tokens through token instanciation
+        // allow creation of tokens through token instantiation
         Token token = new Token(msg.sender, _name, _symbol, 1_000_000 ether);
 
-        tokens.push(address(token)); //pushing each created tokens in an array for saving.
+        tokens.push(address(token)); // pushing each created token into the array
 
-        totalTokens++; //get token amount
+        totalTokens++; // increment total tokens
 
-        //list the tokens for sale
+        // list the token for sale
         TokenSale memory sale = TokenSale(
             address(token),
             _name,
@@ -79,8 +83,12 @@ contract FactoryContract {
         emit Created(address(token));
     }
 
-    function buyToken(address _token, uint256 _amount) external payable {
-        // require(msg.value >= _amount, "Insufficient funds");
+    function buyToken(address _token, uint256 _amount, address _referrer) external payable {
+        // ensure user is whitelisted before purchase
+        if (!whitelisted[msg.sender]) {
+            revert NotAuthorized();
+        }
+
         TokenSale storage sale = tokenToSale[_token];
 
         if (sale.isOpen != true) {
@@ -103,8 +111,11 @@ contract FactoryContract {
             revert InsufficientFunds();
         }
 
+        uint256 ownerFee = (price * 3) / 100; // 3% fee goes to owner
+        uint256 referrerReward = (price * 2) / 100; // 2% referral reward
+
         sale.sold += _amount;
-        sale.raised += price;
+        sale.raised += (price - ownerFee - referrerReward); // deduct fees from raised amount
 
         if (sale.sold >= TARGET_LIMIT || sale.raised >= TARGET) {
             sale.isOpen = false;
@@ -112,26 +123,56 @@ contract FactoryContract {
 
         Token(_token).transfer(msg.sender, _amount);
 
+        // send owner fee
+        payable(owner).transfer(ownerFee);
+
+        // send referral reward if referrer is valid
+        if (_referrer != address(0) && _referrer != msg.sender) {
+            referralEarnings[_referrer] += referrerReward;
+            emit ReferralReward(_referrer, referrerReward);
+        }
+
         emit Buy(_token, _amount);
     }
 
-    function DepositToken(address _token, string memory _name, string memory _symbol) public {
-        Token token = new Token(msg.sender, _name, _symbol, 1_000_000 ether);
-        TokenSale memory sale = tokenToSale[_token];
-
-        if (sale.isOpen != true) {
-            revert TargetNotReached();
-        }
-
-        token.transfer(sale.creator, token.balanceOf(address(this)));
-
-        (bool success, ) = payable(sale.creator).call{value: sale.raised}("");
-        require(success, "ETH transfer failed");
+    function whitelistUser(address _user) external onlyOwner {
+        whitelisted[_user] = true;
+        emit Whitelisted(_user);
     }
 
-    function WithdrawToken(uint256 _amount) public onlyOwner {
-        (bool success, ) = payable(owner).call{value: _amount}("");
+    function withdrawReferralEarnings() external {
+        uint256 earnings = referralEarnings[msg.sender];
+        require(earnings > 0, "no earnings to withdraw");
+
+        referralEarnings[msg.sender] = 0;
+        payable(msg.sender).transfer(earnings);
+    }
+
+    function withdrawCreatorFunds(address _token) external {
+        TokenSale storage sale = tokenToSale[_token];
+
+        if (sale.creator != msg.sender) {
+            revert NotAuthorized();
+        }
+
+        uint256 amount = sale.raised;
+        sale.raised = 0;
+
+        (bool success, ) = payable(msg.sender).call{value: amount}("");
         require(success, "ETH transfer failed");
+
+        emit Withdrawn(msg.sender, amount);
+    }
+
+    function closeSale(address _token) external {
+        TokenSale storage sale = tokenToSale[_token];
+
+        if (sale.creator != msg.sender) {
+            revert NotAuthorized();
+        }
+
+        sale.isOpen = false;
+        emit SaleClosed(_token);
     }
 
     function getTokenSale(
@@ -148,5 +189,4 @@ contract FactoryContract {
         uint256 cost = (step * (_sold / increment)) + floor;
         return cost;
     }
-    
 }
