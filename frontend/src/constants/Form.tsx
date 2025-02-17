@@ -20,13 +20,12 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
   const [website, setWebsite] = useState("");
   const [submittedData, setSubmittedData] = useState<any[]>([]);
 
-
-
-  // const [data, refetch] = useReadContract({
-  //   address: ContractAddress,
-  //   abi,
-  //   functionName: 
-  // })
+  const { data: creator } = useReadContract({
+    address: ContractAddress,
+    abi: abi,
+    functionName: "getTokenCreator",
+    args: [submittedData.length],
+  });
 
   const { writeContractAsync: createToken } = useWriteContract();
 
@@ -58,14 +57,16 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer YOUR_PINATA_JWT_TOKEN`,
+            Authorization: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiJiNTg4ZWFhNi0yNTUxLTQ0MGUtYmVmMy0yMmU4YTQ3YjQ0OTUiLCJlbWFpbCI6ImF5b2Rlamlha2ludG9iaTFAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6ImVmZjQ0ZTM3NTczMDUwNzMzYzZhIiwic2NvcGVkS2V5U2VjcmV0IjoiOGNiNjdhNjdjMTUwMzdmN2M2ZTg`,
           },
           body: formData,
         }
       );
 
       const result = await response.json();
-      setUploadURL(`https://ipfs.io/ipfs/${result.IpfsHash}`);
+      const ipfsUrl = `https://gateway.pinata.cloud/ipfs/${result.IpfsHash}`; 
+      console.log("IPFS URL:", ipfsUrl);
+      setUploadURL(ipfsUrl);
     } catch (error) {
       console.error("Error uploading file:", error);
     }
@@ -85,7 +86,7 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
         address: ContractAddress,
         abi: abi,
         functionName: "createToken",
-        args: [name, symbol, uploadURL], // Include image URL
+        args: [name, symbol, description, uploadURL], // Include image URL
       });
       console.log("Token created successfully!");
     } catch (error) {
@@ -96,6 +97,7 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
       name,
       symbol,
       description,
+      creator,
       image: uploadURL, // Store uploaded image
       telegram: telegram || null,
       website: website || null,
@@ -110,7 +112,7 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
     setDescription("");
     setTelegram("");
     setWebsite("");
-    setUploadURL(""); 
+    setUploadURL("");
   };
 
   return (
@@ -243,6 +245,7 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
               <p>
                 <strong>Description:</strong> {token.description}
               </p>
+              <p>Creator </p> {token.creator}
               {token.image && (
                 <img
                   src={token.image}

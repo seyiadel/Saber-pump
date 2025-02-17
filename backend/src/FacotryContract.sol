@@ -2,7 +2,6 @@
 pragma solidity ^0.8.27;
 import {Token} from "./Token.sol";
 
-
 error ListingFeerequired();
 error InsufficientFunds();
 error SaleIsClosed();
@@ -18,15 +17,15 @@ contract FactoryContract {
     uint256 public immutable listingFee;
     address public owner;
 
-    
-    address[] public tokens; //array of created tokens
+    address[] public tokens;
     uint256 public totalTokens;
     mapping(address => TokenSale) public tokenToSale;
 
     struct TokenSale {
         address token;
         string name;
-        string desciption;
+        string image;
+        string description;
         address creator;
         uint256 sold;
         uint256 raised;
@@ -50,10 +49,10 @@ contract FactoryContract {
     function createToken(
         string memory _name,
         string memory _symbol,
-        string memory _description
+        string memory _description,
+        string memory _image
     ) public payable {
-
-        if (msg.value >= 0) {
+        if (msg.value < listingFee) {
             revert ListingFeerequired();
         }
         //Allow creation of tokens through token instanciation
@@ -68,6 +67,7 @@ contract FactoryContract {
             address(token),
             _name,
             _description,
+            _image,
             msg.sender,
             0,
             0,
@@ -80,7 +80,8 @@ contract FactoryContract {
     }
 
     function buyToken(address _token, uint256 _amount) external payable {
-        // require(msg.value >= _amount, "Insufficient funds");
+        require(msg.value >= _amount, "Insufficient funds");
+
         TokenSale storage sale = tokenToSale[_token];
 
         if (sale.isOpen != true) {
@@ -115,7 +116,11 @@ contract FactoryContract {
         emit Buy(_token, _amount);
     }
 
-    function DepositToken(address _token, string memory _name, string memory _symbol) public {
+    function DepositToken(
+        address _token,
+        string memory _name,
+        string memory _symbol
+    ) public {
         Token token = new Token(msg.sender, _name, _symbol, 1_000_000 ether);
         TokenSale memory sale = tokenToSale[_token];
 
@@ -140,6 +145,12 @@ contract FactoryContract {
         return tokenToSale[tokens[_index]];
     }
 
+    function getTokenCreator(uint256 _index) public view returns (address) {
+        require(_index < tokens.length, "Index out of bounds");
+        address tokenAddress = tokens[_index];
+        return tokenToSale[tokenAddress].creator;
+    }
+
     function getCostPrice(uint256 _sold) public pure returns (uint256) {
         uint256 floor = 0.0001 ether;
         uint256 step = 0.0001 ether;
@@ -148,5 +159,4 @@ contract FactoryContract {
         uint256 cost = (step * (_sold / increment)) + floor;
         return cost;
     }
-    
 }
