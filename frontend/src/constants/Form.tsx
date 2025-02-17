@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useWriteContract, useReadContract } from "wagmi";
+import { useWriteContract, useReadContract, useAccount } from "wagmi";
 import { isAddress } from "viem";
 
 type FormProps = {
@@ -20,12 +20,23 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
   const [website, setWebsite] = useState("");
   const [submittedData, setSubmittedData] = useState<any[]>([]);
 
+  const { isConnected } = useAccount();
 
+  const clearForm = () => {
+    setName("");
+    setSymbol("");
+    setDescription("");
+    setFile(null);
+    setUploadURL("");
+    setShowMore(false);
+    setTelegram("");
+    setWebsite("");
+  };
 
   // const [data, refetch] = useReadContract({
   //   address: ContractAddress,
   //   abi,
-  //   functionName: 
+  //   functionName:
   // })
 
   const { writeContractAsync: createToken } = useWriteContract();
@@ -75,6 +86,11 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
   const handleCreateToken = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    if (!isConnected) {
+      alert("Please connect your wallet first."); // Show alert if wallet is not connected
+      return;
+    }
+
     if (!isAddress(ContractAddress)) {
       console.error("Invalid Ethereum address");
       return;
@@ -110,14 +126,20 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
     setDescription("");
     setTelegram("");
     setWebsite("");
-    setUploadURL(""); 
+    setUploadURL("");
   };
 
   return (
     <div className="text-center">
       <button
         className="text-[25px] font-semibold"
-        onClick={() => setShowForm(true)}
+        onClick={() => {
+          if (!isConnected) {
+            alert("Please connect your wallet first.");
+          } else {
+            setShowForm(true);
+          }
+        }}
       >
         [ Create a Token ]
       </button>
@@ -128,7 +150,10 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
             <div className="flex items-center justify-between pb-3 border-b">
               <h2 className="text-xl text-black font-semibold">Create Token</h2>
               <button
-                onClick={() => setShowForm(false)}
+                onClick={() => {
+                  setShowForm(false);
+                  clearForm();
+                }}
                 className="text-gray-500 hover:bg-gray-200 rounded-full p-2"
               >
                 <svg
@@ -177,7 +202,11 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
               />
 
               <div>
-                <input type="file" onChange={handleFileChange} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                />
                 {uploadURL && (
                   <div className="mt-2">
                     <img
