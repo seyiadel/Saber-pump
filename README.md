@@ -40,8 +40,8 @@ Ensure you have the following installed:
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-username/crowdfunding-dapp.git
-   cd crowdfunding-dapp
+   git clone https://github.com/your-username/saber-pump.git
+   cd saber-pump
    
 3. Install Dependencies:
    ```bash
