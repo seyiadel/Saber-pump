@@ -20,12 +20,21 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
   const [website, setWebsite] = useState("");
   const [submittedData, setSubmittedData] = useState<any[]>([]);
 
-
+  const clearForm = () => {
+    setName("");
+    setSymbol("");
+    setDescription("");
+    setFile(null);
+    setUploadURL("");
+    setShowMore(false);
+    setTelegram("");
+    setWebsite("");
+  };
 
   // const [data, refetch] = useReadContract({
   //   address: ContractAddress,
   //   abi,
-  //   functionName: 
+  //   functionName:
   // })
 
   const { writeContractAsync: createToken } = useWriteContract();
@@ -110,7 +119,7 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
     setDescription("");
     setTelegram("");
     setWebsite("");
-    setUploadURL(""); 
+    setUploadURL("");
   };
 
   return (
@@ -128,7 +137,10 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
             <div className="flex items-center justify-between pb-3 border-b">
               <h2 className="text-xl text-black font-semibold">Create Token</h2>
               <button
-                onClick={() => setShowForm(false)}
+                onClick={() => {
+                  setShowForm(false);
+                  clearForm();
+                }}
                 className="text-gray-500 hover:bg-gray-200 rounded-full p-2"
               >
                 <svg
@@ -177,7 +189,11 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
               />
 
               <div>
-                <input type="file" onChange={handleFileChange} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                />
                 {uploadURL && (
                   <div className="mt-2">
                     <img
