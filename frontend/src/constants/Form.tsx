@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useWriteContract, useReadContract } from "wagmi";
+import { useWriteContract, useReadContract, useAccount } from "wagmi";
 import { isAddress } from "viem";
 
 type FormProps = {
@@ -19,6 +19,8 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
   const [telegram, setTelegram] = useState("");
   const [website, setWebsite] = useState("");
   const [submittedData, setSubmittedData] = useState<any[]>([]);
+
+  const { isConnected } = useAccount();
 
   const clearForm = () => {
     setName("");
@@ -84,6 +86,11 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
   const handleCreateToken = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    if (!isConnected) {
+      alert("Please connect your wallet first."); // Show alert if wallet is not connected
+      return;
+    }
+
     if (!isAddress(ContractAddress)) {
       console.error("Invalid Ethereum address");
       return;
@@ -126,7 +133,13 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
     <div className="text-center">
       <button
         className="text-[25px] font-semibold"
-        onClick={() => setShowForm(true)}
+        onClick={() => {
+          if (!isConnected) {
+            alert("Please connect your wallet first.");
+          } else {
+            setShowForm(true);
+          }
+        }}
       >
         [ Create a Token ]
       </button>
