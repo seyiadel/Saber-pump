@@ -114,7 +114,6 @@ const Form: React.FC<FormProps> = ({ ContractAddress, abi }) => {
       name,
       symbol,
       description,
-      creator,
       image: uploadURL, // Store uploaded image
       telegram: telegram || null,
       website: website || null,
