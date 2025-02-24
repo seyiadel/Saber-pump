@@ -61,7 +61,7 @@ contract FactoryContract {
         string memory _image
     ) public payable {
 
-        if (msg.value >= 0) {
+        if (msg.value < listingFee ) {
             revert ListingFeerequired();
         }
         // allow creation of tokens through token instantiation
@@ -75,8 +75,8 @@ contract FactoryContract {
         TokenSale memory sale = TokenSale(
             address(token),
             _name,
-            _description,
             _image,
+            _description,
             msg.sender,
             0,
             0,
@@ -88,9 +88,13 @@ contract FactoryContract {
         emit Created(address(token));
     }
 
-    function buyToken(address _token, uint256 _amount) external payable {
+    function buyToken(address _token, uint256 _amount, address _referral) external payable {
         // require(msg.value >= _amount, "Insufficient funds");
         TokenSale storage sale = tokenToSale[_token];
+
+        if (_token === 0x0000000000000000000000000000000000000000) {
+            revert InvalidTokenAddress();
+        }
 
         if (sale.isOpen != true) {
             revert SaleIsClosed();
