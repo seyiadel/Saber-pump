@@ -9,19 +9,18 @@ error AmountToLow();
 error AmountToHigh();
 error TargetNotReached();
 error NotAuthorized();
+error IndexOutOfBounds();
 
 contract FactoryContract {
     uint256 public constant TARGET = 3 ether;
-    uint256 private constant TARGET_LIMIT = 500_000 ether;
+    uint256 private constant TARGET_LIMIT = 500_000 ether; //limit of tokens that can be sold
 
     uint256 public immutable listingFee;
     address public owner;
 
-    
     address[] public tokens; //array of created tokens
-    uint256 public totalTokens;
-    mapping(address => TokenSale) public tokenToSale;
-    mapping(address => bool) public whitelisted; // whitelist for approved buyers
+    uint256 public totalTokens; //storing created amount of total tokens
+    mapping(address => TokenSale) public tokenToSale; //mapped address to struct to track created address to each token details
     mapping(address => uint256) public referralEarnings; // stores referral rewards
 
     struct TokenSale {
@@ -33,7 +32,7 @@ contract FactoryContract {
         uint256 sold;
         uint256 raised;
         bool isOpen;
-    }
+    } //custom data type to hold created data for our created tokens
 
     event Created(address indexed token);
     event Buy(address indexed token, uint256 amount);
@@ -60,10 +59,10 @@ contract FactoryContract {
         string memory _description,
         string memory _image
     ) public payable {
-
-        if (msg.value < listingFee ) {
+        if (msg.value < listingFee) {
             revert ListingFeerequired();
         }
+
         // allow creation of tokens through token instantiation
         Token token = new Token(msg.sender, _name, _symbol, 1_000_000 ether);
 
@@ -83,18 +82,18 @@ contract FactoryContract {
             true
         );
 
-        tokenToSale[address(token)] = sale;
+        tokenToSale[address(token)] = sale; //stores the passed info from the user information
 
         emit Created(address(token));
     }
 
-    function buyToken(address _token, uint256 _amount, address _referral) external payable {
+    function buyToken(
+        address _token,
+        uint256 _amount,
+        address _referrer
+    ) external payable {
         // require(msg.value >= _amount, "Insufficient funds");
         TokenSale storage sale = tokenToSale[_token];
-
-        if (_token === 0x0000000000000000000000000000000000000000) {
-            revert InvalidTokenAddress();
-        }
 
         if (sale.isOpen != true) {
             revert SaleIsClosed();
@@ -140,23 +139,6 @@ contract FactoryContract {
         emit Buy(_token, _amount);
     }
 
-    function DepositToken(address _token, string memory _name, string memory _symbol) public {
-        Token token = new Token(msg.sender, _name, _symbol, 1_000_000 ether);
-        TokenSale memory sale = tokenToSale[_token];
-
-        if (sale.creator != msg.sender) {
-            revert NotAuthorized();
-        }
-
-        uint256 amount = sale.raised;
-        sale.raised = 0;
-
-        (bool success, ) = payable(msg.sender).call{value: amount}("");
-        require(success, "ETH transfer failed");
-
-        emit Withdrawn(msg.sender, amount);
-    }
-
     function closeSale(address _token) external {
         TokenSale storage sale = tokenToSale[_token];
 
@@ -175,7 +157,9 @@ contract FactoryContract {
     }
 
     function getTokenCreator(uint256 _index) public view returns (address) {
-        require(_index < tokens.length, "Index out of bounds");
+        if (_index >= tokens.length) {
+            revert IndexOutOfBounds();
+        }
         address tokenAddress = tokens[_index];
         return tokenToSale[tokenAddress].creator;
     }
