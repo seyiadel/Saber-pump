@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
-import {Token} from "./Token.sol";
+import { Token } from "./Token.sol";
 
 error ListingFeerequired();
 error InsufficientFunds();
@@ -9,6 +9,7 @@ error AmountToLow();
 error AmountToHigh();
 error TargetNotReached();
 error NotAuthorized();
+error InvalidTokenAddress();
 
 contract FactoryContract {
     uint256 public constant TARGET = 3 ether;
@@ -54,12 +55,7 @@ contract FactoryContract {
         owner = msg.sender;
     }
 
-    function createToken(
-        string memory _name,
-        string memory _symbol,
-        string memory _description,
-        string memory _image
-    ) public payable {
+    function createToken( string memory _name, string memory _symbol, string memory _description, string memory _image) public payable {
 
         if (msg.value < listingFee ) {
             revert ListingFeerequired();
@@ -92,7 +88,7 @@ contract FactoryContract {
         // require(msg.value >= _amount, "Insufficient funds");
         TokenSale storage sale = tokenToSale[_token];
 
-        if (_token === 0x0000000000000000000000000000000000000000) {
+        if (_token == 0x0000000000000000000000000000000000000000) {
             revert InvalidTokenAddress();
         }
 
@@ -132,9 +128,9 @@ contract FactoryContract {
         payable(owner).transfer(ownerFee);
 
         // send referral reward if referrer is valid
-        if (_referrer != address(0) && _referrer != msg.sender) {
-            referralEarnings[_referrer] += referrerReward;
-            emit ReferralReward(_referrer, referrerReward);
+        if (_referral != address(0) && _referral != msg.sender) {
+            referralEarnings[_referral] += referrerReward;
+            emit ReferralReward(_referral, referrerReward);
         }
 
         emit Buy(_token, _amount);
